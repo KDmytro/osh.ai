@@ -47,6 +47,13 @@ system_template = """Use the following pieces of context to answer the users que
     chat_history:
     {context}"""
 
+messages = [
+    SystemMessagePromptTemplate.from_template(system_template),
+    HumanMessagePromptTemplate.from_template("{question}")
+]
+prompt = ChatPromptTemplate.from_messages(messages)
+
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -58,12 +65,6 @@ async def startup_event():
 
 def generate_chat_response(query: str, user_profile: UserProfile, topic: str) -> str:
 
-    messages = [
-        SystemMessagePromptTemplate.from_template(system_template),
-        HumanMessagePromptTemplate.from_template("{question}")
-    ]
-    prompt = ChatPromptTemplate.from_messages(messages)
-
     user_profile = {
         "state": user_profile.state,
         "business_type": user_profile.business_type,
@@ -72,7 +73,9 @@ def generate_chat_response(query: str, user_profile: UserProfile, topic: str) ->
 
     legal_doc = legal_doc_selector.get(topic)
 
-    prompt_text = prompt.format(legal_chunk=legal_doc, context=None, question=query, **user_profile)
+    history = chat_history.get_history()
+
+    prompt_text = prompt.format(legal_chunk=legal_doc, context=history, question=query, **user_profile)
 
     answer = LLM(prompt_text)
 
@@ -86,6 +89,7 @@ async def generate(generate_request: GenerateRequest):
     query = generate_request.query
     user_profile = generate_request.user_profile
     topic = generate_request.topic
+
     return generate_chat_response(query=query, user_profile=user_profile, topic=topic)
 
 

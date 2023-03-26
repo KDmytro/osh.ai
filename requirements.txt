@@ -2,6 +2,8 @@ pandas
 jupyterlab
 scipy
 numpy
-langchain
+langchain==0.0.123
+uvicorn
 openai==0.27.2
 fastapi==0.95.0
+python-dotenv
