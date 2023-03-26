@@ -1,21 +1,26 @@
-from langchain.chat_models import ChatOpenAI
+# from langchain.chat_models import ChatOpenAI
 from langchain.prompts.chat import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
     AIMessagePromptTemplate,
     HumanMessagePromptTemplate,
 )
-from langchain.schema import (
-    AIMessage,
-    HumanMessage,
-    SystemMessage
-)
+
+# from langchain.schema import (
+#     AIMessage,
+#     HumanMessage,
+#     SystemMessage
+# )
+
 from fastapi import FastAPI
 from langchain.llms import OpenAI
 from dotenv import load_dotenv
-from logging import getLogger
 from fastapi.logger import logger
 import logging
+
+from backend.doc_retrieval import legal_doc_selector
+from backend.history_memory import ChatHistory
+from backend.models import GenerateRequest, UserProfile
 
 gunicorn_logger = logging.getLogger('gunicorn.error')
 logger.handlers = gunicorn_logger.handlers
@@ -25,33 +30,10 @@ load_dotenv()
 app = FastAPI()
 
 LLM = OpenAI(model_name="gpt-4", temperature=0.1, n=3, max_tokens=500)
-
-RAG_TEMPLATE = """Based on the following federal regulation, answer the user’s prompt as an expert in OSHA compliance 
-specializing in small business compliance.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
-----------------
-Regulation:
-{legal_chunk}
-
-User profile:
-State: {state}
-Business type: {business_type}
-Number of employees: {num_employees}
-
-chat_history:
-{context}"""
+chat_history = ChatHistory()
 
 
-@app.on_event("startup")
-async def startup_event():
-    """
-    """
-
-    logger.info("done initializing")
-
-def generate_chat_response(query: str) -> str:
-
-    system_template = """Use the following pieces of context to answer the users question. Based on the following federal regulation, answer the user’s prompt as an expert in OSHA compliance specializing in small business compliance.
+system_template = """Use the following pieces of context to answer the users question. Based on the following federal regulation, answer the user’s prompt as an expert in OSHA compliance specializing in small business compliance.
     If you don't know the answer, just say that you don't know, don't try to make up an answer.
     ----------------
     Regulation:
@@ -65,6 +47,17 @@ def generate_chat_response(query: str) -> str:
     chat_history:
     {context}"""
 
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    """
+
+    logger.info("done initializing")
+
+
+def generate_chat_response(query: str, user_profile: UserProfile, topic: str) -> str:
+
     messages = [
         SystemMessagePromptTemplate.from_template(system_template),
         HumanMessagePromptTemplate.from_template("{question}")
@@ -72,21 +65,27 @@ def generate_chat_response(query: str) -> str:
     prompt = ChatPromptTemplate.from_messages(messages)
 
     user_profile = {
-        "state": "CA",
-        "business_type": "laundry",
-        "num_employees": 150,
+        "state": user_profile.state,
+        "business_type": user_profile.business_type,
+        "num_employees": user_profile.num_employees,
     }
 
-    legal_chunk
+    legal_doc = legal_doc_selector.get(topic)
 
-    prompt_text = prompt.format(legal_chunk=legal_chunk, context=None, question=query, **user_profile)
+    prompt_text = prompt.format(legal_chunk=legal_doc, context=None, question=query, **user_profile)
 
-    return LLM(prompt_text)
+    answer = LLM(prompt_text)
+
+    chat_history.add(question=query, answer=answer)
+
+    return answer
+
 
 
 @app.post("/generate")
-async def generate(query: str):
-    return generate_chat_response(query=query)
+async def generate(generate_request: GenerateRequest):
+
+    return generate_chat_response(generate_request)
 
 if __name__ != "main":
     logger.setLevel(gunicorn_logger.level)
