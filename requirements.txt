@@ -7,3 +7,4 @@ uvicorn
 openai==0.27.2
 fastapi==0.95.0
 python-dotenv
+gunicorn
