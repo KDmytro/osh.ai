@@ -1,5 +1,8 @@
 # osh.ai
 
+<img width="714" alt="Screen Shot 2023-03-26 at 10 53 54 AM" src="https://user-images.githubusercontent.com/2357755/227805449-aea00952-47ab-4d10-8723-492a38608bd2.png">
+
+
 Small business is the economic backbone of the country, yet it is difficult and time consuming to discover, understand, and comply with small business regulations. With the new breed of generative AI, people of small business, using their own plain natural language, can ask about relevant regulations, in a sense, they can “talk to the law”.  This demo is a proof of concept in a narrow scope, showing how langchain can vectorize specific sections of regulation and make it possible to elicit relevant context through a [simple App UI](https://www.youtube.com/watch?v=2fBmVCVRvAw) and let users pose questions and get actual drafts as a starting point to understanding their legal obligations. 
 
 We believe this demonstrates the proof of concept, now imagine what's possible if anybody could just talk to law and regulation?
