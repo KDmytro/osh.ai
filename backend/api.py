@@ -81,11 +81,18 @@ def generate_chat_response(query: str, user_profile: UserProfile, topic: str) ->
     return answer
 
 
-
 @app.post("/generate")
 async def generate(generate_request: GenerateRequest):
+    query = generate_request.query
+    user_profile = generate_request.user_profile
+    topic = generate_request.topic
+    return generate_chat_response(query=query, user_profile=user_profile, topic=topic)
 
-    return generate_chat_response(generate_request)
+
+@app.post("/clear_history")
+async def clear_history():
+    chat_history.clear()
+
 
 if __name__ != "main":
     logger.setLevel(gunicorn_logger.level)
