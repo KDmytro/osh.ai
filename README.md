@@ -10,7 +10,7 @@ uvicorn backend.api:app --host 0.0.0.0 --port 8124
 Make sure to set you openai key in the env
 
 
-You cann call `/generate` with this example payload:
+To get a response from the model call `/generate` with this example payload:
 ```json{
     "query": "how many restrooms do I need",
     "user_profile": {
@@ -20,4 +20,9 @@ You cann call `/generate` with this example payload:
     },
     "topic": "Sanitation"
 }
+```
 
+for topic teh following options are allowed:
+- Emergency Action Plan
+- Laundry Machines
+- Sanitation

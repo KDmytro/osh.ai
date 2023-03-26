@@ -71,7 +71,7 @@ def generate_chat_response(query: str, user_profile: UserProfile, topic: str) ->
         "num_employees": user_profile.num_employees,
     }
 
-    legal_doc = legal_doc_selector.get(topic)
+    legal_doc = legal_doc_selector.get(topic, {}).get("contents")
 
     history = chat_history.get_history()
 
